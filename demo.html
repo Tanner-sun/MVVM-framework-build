@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>realize a MVVM framework</title>
+</head>
+<body>
+
+<div id="container">
+    <div id="tpl1">
+        <p m-text="someStr"></p>
+        <input type="text" m-model="child.someStr">
+        <p m-class="className" class="abc">
+            {{someStr}}
+        </p>
+<!--         <p m-html="child.htmlStr"></p>
+        <button m-on:click="clickBtn">change model</button> -->
+    </div>
+</div>
+
+<script src="./js/observer.js"></script>
+<script src="./js/watcher.js"></script>
+<script src="./js/directives.js"></script>
+<script src="./js/mvvm.js"></script>
+<script>
+
+    MVVM({
+        template: 'tpl1',
+        data: {
+            someStr: 'hello ',
+            className: 'btn',
+            htmlStr: '<span style="color: #f00;">red</span>',
+            child: {
+                someStr: 'World !'
+            }
+        },
+        methods: {
+            clickBtn: function(e) {
+                var randomStrArr = ['childOne', 'childTwo', 'childThree'];
+                this.child.someStr = randomStrArr[parseInt(Math.random() * 3)];
+            }
+        }
+    });
+
+</script>
+
+</body>
+</html>
