@@ -15,7 +15,7 @@ var observer = function(target,data){
 				} else {
 					target.watchers[key].push(target.nowWatcher);
 				}
-				return data[key] + 1;
+				return data[key];
 			},
 			set:function(value){
 				if(data[key] != value){

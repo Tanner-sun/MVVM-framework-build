@@ -1,3 +1,5 @@
+var Watcher = require(./Watcher.js);
+
 var Compiler = function(vm,template){
 
 	//识别出指令
@@ -21,6 +23,7 @@ Compiler.prototype.parse = function(vm,template){
 			return new Watcher(vm,node,expression,attr);
 		})
 	})
+	return 
 };
 
 Compiler.prototype.traverse = function(nodeList){

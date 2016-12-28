@@ -21,12 +21,16 @@ describe('observer', function() {
 
   it('can observer data on scope by getter function', function() {
     var aValue = vm.$scope['a'];
-    expect(aValue).toBe(2);
+    var bValue = vm.$scope['b'];
+    var cValue = vm.$scope['c'];
+    expect(aValue).toBe(1);
+    expect(bValue).toBe('a');
+    expect(cValue).toBe(true);
     expect(vm.watchers['a']).toEqual([{}]);
   });
 
   it('can observer data on scope by setter function', function() {
     vm.$scope['a'] = 2;
-    expect(vm.$scope['a']).toBe(3);
+    expect(vm.$scope['a']).toBe(2);
   });
 });

@@ -6,13 +6,13 @@
 			return new MVVM(paramObj);
 		};
 
-
-
-
 		this.vm = self;
+
+		//observer数据
 		var data =  paramObj[data];
 		observer(this.vm,data);
 
+		//解析模板
 		var template =  paramObj[template];
 		compiler(this.vm,template);
 	}
