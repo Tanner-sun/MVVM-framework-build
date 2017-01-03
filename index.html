@@ -24,23 +24,26 @@
 <script src="./js/mvvm.js"></script>
 <script>
 
-    MVVM({
+    JSpringMin([
         template: 'tpl1',
-        data: {
-            someStr: 'hello ',
-            className: 'btn',
-            htmlStr: '<span style="color: #f00;">red</span>',
-            child: {
-                someStr: 'World !'
+        function (){
+            methods: {
+                clickBtn: function(e) {
+                    var randomStrArr = ['childOne', 'childTwo', 'childThree'];
+                    this.child.someStr = randomStrArr[parseInt(Math.random() * 3)];
+                }
             }
         },
-        methods: {
-            clickBtn: function(e) {
-                var randomStrArr = ['childOne', 'childTwo', 'childThree'];
-                this.child.someStr = randomStrArr[parseInt(Math.random() * 3)];
-            }
+        function (vm){
+            return data = {
+                someStr: 'hello ',
+                className: 'btn',
+                htmlStr: '<span style="color: #f00;">red</span>',
+                child: {
+                    someStr: 'World !'
+                }
         }
-    });
+    ]);
 
 </script>
 

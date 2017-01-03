@@ -1,9 +1,9 @@
 var Watcher = require(./Watcher.js);
 
-var Compiler = function(vm,template){
+var Compiler = function(vm, template){
 
 	//识别出指令
-	this.parse(vm,template);
+	this.parse(vm, template);
 };
 
 Compiler.prototype.parse = function(vm,template){
@@ -55,3 +55,9 @@ Compiler.prototype.firstLizeFor = function(attr){
 	})
 	return attrArr;
 };
+
+function complier (vm, el) {
+	return new Compiler(vm,el);
+}
+
+module.exports = complier;
