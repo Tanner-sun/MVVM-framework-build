@@ -2,7 +2,6 @@ var observer = function(vm, data){
 
 	var keys = Object.keys(data);
 	var _source = {};
-	var vm.watchers = {};
 
 	keys.forEach(function(key){
 
@@ -12,22 +11,23 @@ var observer = function(vm, data){
 			configurable:true,
 			enumerable:false,
 			get:function(){
-				//注册watcher?
+				//注册watcher?s
 				if (!vm.watchers[key]) {
 					vm.watchers[key]=[];
 					vm.watchers[key].push(vm.nowWatcher);
 				} else {
 					vm.watchers[key].push(vm.nowWatcher);
 				}
+				console.log(1);
 				return data[key];
 			},
 			set:function(value){
 				if (data[key] != value){
 					data[key] = value;
-					/* 处理新值是对象的情形*/
-					_.forEach(vm.watchers[key],function(watcher){
-						watcher.$update(key, value)
-					};
+					/* 仍需处理新值是对象的情形*/
+					_.forEach(vm.watchers[key], function(watcher){
+						watcher.$update()
+					})
 				}
 			}
 		};
