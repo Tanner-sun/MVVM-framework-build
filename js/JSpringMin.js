@@ -80,7 +80,7 @@
 				compiler(vm, el);
 
 				//执行controller
-				typeof paramArr == "function" && paramArr[1](vm.$scope);
+				typeof paramArr[1] == "function" && paramArr[1](vm.$scope);
 			}
 
 
@@ -17204,6 +17204,13 @@
 /* 3 */
 /***/ function(module, exports) {
 
+	/*
+	*observer的作用
+	*1）递归监听data所有的key
+	*2）getter：将当前的watcher加入watchers。后续需添加限制条件
+	*3）setter：将通过$scope赋予的新值与data中旧值对比，若不同，触发2）中维系的watchers中所有watcher的更新
+	*/
+
 	var observer = function(vm, data){
 
 		var keys = Object.keys(data);
@@ -17232,7 +17239,7 @@
 						data[key] = value;
 						/* 仍需处理新值是对象的情形*/
 						_.forEach(vm.watchers[key], function(watcher){
-							watcher.$update()
+							watcher.$update(vm)
 						})
 					}
 				}
@@ -17249,63 +17256,76 @@
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
+	/*
+	*compiler的作用：
+	*1）识别出DOM节点上有指令的node元素节点，并将这些节点过滤出来。
+	*2）对1）过滤出来的每个node节点的attributes属性进行遍历，过滤出含有m-开头的属性。
+	*3）对每个符合2）要求的属性，创建一个watcher，并将该属性对应的指令名称、表达式值、node节点传递给watcher
+	*
+	*
+	*/
 	var Watcher = __webpack_require__(5);
 	var _ = __webpack_require__(1);
 
 	var Compiler = function(vm, el){
-
-		//识别出指令
+		this.vm = vm;
 		this.parse(vm, el);
 	};
 
 	Compiler.prototype.parse = function(vm, el){
-		var self = this;
 
 		var template = document.getElementById(el);
 		//遍历出含有指令的node节点
-		var nodeArr = [];
-		nodeArr = self.traverse(template);
+		var nodeMatched = [];
+		nodeMatched = this.traverseNodes(template, nodeMatched);
 		//在每个node节点中，解析出m-开头的属性，并为每个属性增加watcher
-		nodeArr.forEach(function(node){
-			var nodeAttr = self.isMatched(node.attributes);
-			nodeAttr.forEach(function(attr){
-				//对每个m-属性进行attachwatcher
-				// new Watcher();
-				var type = attr.nodeName.substring(2);
-				var expression = attr.value;
-				return new Watcher(vm, node, expression, type);
-			})
-		})
+		this.filterAttributes(vm, nodeMatched);
+
 	};
 
-	Compiler.prototype.traverse = function(template){
+	Compiler.prototype.traverseNodes = function(template, nodeMatched){
 		
 		var self = this;
-		var attrArr = template.attributes;
-		_.each(attrArr, function(attr){
-			if (self.isMatched(attr)){
-				nodeArr.push(template);
-			}
-		})	
+		if (template.nodeType == 1) {
+			var attrArr = template.attributes;
+			_.each(attrArr, function(attr){
+				if (self.isMatchedAttr(attr)){
+					nodeMatched.push(template);
+				}
+			})		
+		}
 
-		while (template.childNodes.length != 0)
-			{
-				var node = template.childNodes[i];
-				this.traverse(node);
+		if (template.hasChildNodes())
+			{	
+				var node = template.childNodes;
+				for(var i = 0,len = node.length; i<len; i++){
+					childNode = template.childNodes[i];
+					this.traverseNodes(childNode, nodeMatched);
+				}
 			}
-		return nodeArr;	
+		return nodeMatched;	
 	};
 
-	Compiler.prototype.isMatched = function(attr){
-		var attrArr = [];
-		var keys = Object.keys(attr)
-		keys.forEach(function(i){
-			if(attr[i].nodeName.indexOf('m-') >= 0){
-				attrArr.push(attr[i])
-			}
+	Compiler.prototype.isMatchedAttr = function(attr){
+		return attr.nodeName.indexOf('m-') >= 0 ? true : false;
+	};
+
+	Compiler.prototype.filterAttributes = function(vm, nodeArr) {
+		var self = this;
+		var type,expression;
+		_.each(nodeArr, function(node){
+			var nodeAttr = node.attributes;
+			_.each(nodeAttr,function(attr){
+				if (self.isMatchedAttr(attr)) {
+					type = attr.nodeName.substring(2);
+					expression = attr.value;
+					return new Watcher(vm, node, expression, type) 
+				}
+			})
 		})
-		return attrArr;
-	};
+	}
+
+
 
 	function complier (vm, el) {
 		return new Compiler(vm, el);
@@ -17317,10 +17337,13 @@
 /* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-	//watcher负责什么？
-	//求出m-指令对应表达式的值
-	//拥有初始化节点内容的函数
-	//拥有更新节点内容的函数
+	/*
+	*watcher的作用
+	*1）初始化阶段：接收compiler传递过来的expr、指令名称、node节点。
+	*2）初始化阶段：求出expr对应表达式的值，并触发observe的getter函数，最终将该watcher添加到该key维系的watchers集合中。
+	*3）初始化阶段：调用Directive，将DOM的内容填充为实际数据值。
+	*4）更新阶段：更新自身watcher，重新求值，并调用Directive刷新DOM内容。
+	*/
 
 	var Directives = __webpack_require__(6);
 
@@ -17329,22 +17352,24 @@
 	var Watcher = function(vm, node, exp, type){
 		
 		this.exp = exp;
-		this.value = this.$getValue();
-		this.type = type;
-
 		vm.nowWatcher = this;
+
+		this.value = this.$getValue(vm);
+		this.type = type;
+		this.node = node;
+
 		//求值 从而触发get 进而将当前watcher加入改实例vm的watchers中
 
 		//利用不同指令处理不同的m-，fillNodeData
 		// this.$addDirectives();
 		this.$fillNodeData();
 	};
-	Watcher.prototype.$update = function(){
-		var newValue = this.$getValue();
+	Watcher.prototype.$update = function(vm){
+		var newValue = this.$getValue(vm);
 		var oldValue = this.value;
-		Directives[this.type].call(vm, newValue, oldValue);
+		Directives[this.type].call(this, this.node, newValue, oldValue);
 	};
-	Watcher.prototype.$getValue = function(){
+	Watcher.prototype.$getValue = function(vm){
 		//处理表达式的情形
 		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 		var exps = this.exp.split('.');
@@ -17358,8 +17383,8 @@
 	Watcher.prototype.$fillNodeData = function(){
 		//处理表达式的情形
 		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
-		var newValue = this.$getValue();
-		Directives[this.type].call(vm, newValue, oldValue);
+		var newValue = this.value;
+		Directives[this.type].call(this, this.node, newValue);
 	}
 	module.exports = Watcher;
 
@@ -17367,7 +17392,11 @@
 /* 6 */
 /***/ function(module, exports) {
 
-	//扩展所有指令的处理方法
+	/*
+	*Directives的作用
+	*1）处理所有的指令。text、html
+	*2）处理事件处理程序。
+	*/
 
 	var Directives = {
 		text: function(node, newValue, oldValue){

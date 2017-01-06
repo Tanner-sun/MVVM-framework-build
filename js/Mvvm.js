@@ -34,7 +34,7 @@
 			compiler(vm, el);
 
 			//执行controller
-			typeof paramArr == "function" && paramArr[1](vm.$scope);
+			typeof paramArr[1] == "function" && paramArr[1](vm.$scope);
 		}
 
 

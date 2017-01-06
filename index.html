@@ -29,12 +29,9 @@
 <script>
 
     JSpringMin([
-        'tpl1',
+        'container',
         function ($scope){
-            // clickBtn: function(e) {
-            //         var randomStrArr = ['childOne', 'childTwo', 'childThree'];
-            //         this.child.someStr = randomStrArr[parseInt(Math.random() * 3)];
-            //     }
+            setTimeout(function(){$scope.someStr = "hahaha!"},2000)
         },
         function (){
             return data = {
