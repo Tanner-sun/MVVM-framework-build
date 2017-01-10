@@ -36,6 +36,7 @@ Watcher.prototype.$getValue = function(vm){
 	var exps = this.exp.split('.');
 	var val;
 	//exps = [a, aa, aaa];
+	//需引入表达式处理函数
 	exps.forEach(function(key){
 		val = vm.$scope[key]
 	})

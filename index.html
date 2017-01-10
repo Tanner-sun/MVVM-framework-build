@@ -12,32 +12,38 @@
             height: 100px;
             background: red;
         }
+        #tpl2 {
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
 
 <div id="container">
     <div id="tpl1">
-        <p m-text="someStr" id = "p_text">hello</p>
+        <p m-text = "someStr" id = "p_text">hello</p>
+        <div id = "tpl2" m-show = "showFlag">ssss</div>
+        <text>ddddd</text>
     </div>
 </div>
 
-<!-- <script src="./js/observer.js"></script> -->
-<!-- <script src="./js/watcher.js"></script> -->
-<!-- <script src="./js/directives.js"></script> -->
 <script src="./js/JSpringMin.js"></script>
 <script>
 
     JSpringMin([
         'container',
         function ($scope){
-            setTimeout(function(){$scope.someStr = "hahaha!"},2000)
+            setTimeout(function(){
+                $scope.someStr = "hahaha!";
+                $scope.showFlag = true;
+            },5000)
         },
         function (){
             return data = {
                 someStr: 'hello world',
                 className: 'btn',
                 htmlStr: '<span style="color: #f00;">red</span>',
+                showFlag: false,
                 child: {
                     someStr: 'World !'
                 }

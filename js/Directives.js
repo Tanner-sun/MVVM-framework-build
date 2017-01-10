@@ -10,6 +10,18 @@ var Directives = {
 	},
 	html: function(node, newValue, oldValue){
 		node.innerHTML = newValue;
+	},
+	show: function(node, newValue){
+		node.style.display = newValue ? '' : 'none';
+		if (newValue && getComputedStyle(node, '').getPropertyValue('display') === 'none') {
+			node.style.display = 'block';
+		}
+	},
+	hide: function(node, newValue){
+		node.style.display = newValue ? 'none' : '';
+		if (!newValue && getComputedStyle(node, '').getPropertyValue('display') === 'none') {
+			node.style.display = 'block';
+		}
 	}
 };
 module.exports = Directives;
