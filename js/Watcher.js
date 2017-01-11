@@ -23,12 +23,12 @@ var Watcher = function(vm, node, exp, type){
 
 	//利用不同指令处理不同的m-，fillNodeData
 	// this.$addDirectives();
-	this.$fillNodeData();
+	this.$fillNodeData(vm);
 };
 Watcher.prototype.$update = function(vm){
 	var newValue = this.$getValue(vm);
 	var oldValue = this.value;
-	Directives[this.type].call(this, this.node, newValue, oldValue);
+	Directives[this.type].call(this, this.node, newValue, oldValue, vm);
 };
 Watcher.prototype.$getValue = function(vm){
 	//处理表达式的情形
@@ -42,10 +42,25 @@ Watcher.prototype.$getValue = function(vm){
 	})
 	return val;
 }
-Watcher.prototype.$fillNodeData = function(){
+Watcher.prototype.$setValue = function(vm, value){
+	//处理表达式的情形
+	//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
+	var exps = this.exp.split('.');
+	var val;
+	//exps = [a, aa, aaa];
+	//需引入表达式处理函数
+	exps.forEach(function(key, idx){
+		if (idx < exps.length -1) {
+			vm.$scope = vm.$scope[key];
+		} else {
+			vm.$scope[key] = value;
+		}
+	})
+}
+Watcher.prototype.$fillNodeData = function(vm){
 	//处理表达式的情形
 	//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 	var newValue = this.value;
-	Directives[this.type].call(this, this.node, newValue);
+	Directives[this.type].call(this, this.node, newValue, undefined, vm);
 }
 module.exports = Watcher;

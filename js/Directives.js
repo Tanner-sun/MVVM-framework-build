@@ -22,6 +22,17 @@ var Directives = {
 		if (!newValue && getComputedStyle(node, '').getPropertyValue('display') === 'none') {
 			node.style.display = 'block';
 		}
+	},
+	model: function(node, newValue, oldValue, vm){
+		node.value = newValue;
+		node.addEventListener('keyup', function(){
+			if (node.value != newValue) {
+				//重新触发$scope绑定的key的setter
+				vm.nowWatcher.$setValue(vm, node.value)
+				newValue = node.value;
+			}
+		}, false)
 	}
+
 };
 module.exports = Directives;

@@ -23,7 +23,8 @@
     <div id="tpl1">
         <p m-text = "someStr" id = "p_text">hello</p>
         <div id = "tpl2" m-show = "showFlag">ssss</div>
-        <text>ddddd</text>
+        <input m-model = 'modelStr' ></input>
+        <p m-text = "modelStr" id = "p_text"></p>
     </div>
 </div>
 
@@ -46,7 +47,8 @@
                 showFlag: false,
                 child: {
                     someStr: 'World !'
-                }
+                },
+                modelStr:'123'
             }
         }
     ]);

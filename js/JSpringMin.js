@@ -65,6 +65,7 @@
 				vm.$scope = {};
 				//针对每个key维系一个watcher数组。用watchers来存放这些数组。
 				vm.watchers = {};
+				vm.initialFlag = false;
 
 				if (paramArr.length !== 3) {
 					throw 'expect paramArr has three elements';
@@ -78,6 +79,7 @@
 				//解析模板
 				var el =  paramArr[0];
 				compiler(vm, el);
+				vm.initialFlag = true;
 
 				//执行controller
 				typeof paramArr[1] == "function" && paramArr[1](vm.$scope);
@@ -17229,7 +17231,10 @@
 						vm.watchers[key]=[];
 						vm.watchers[key].push(vm.nowWatcher);
 					} else {
-						vm.watchers[key].push(vm.nowWatcher);
+						if (!vm.initialFlag) {
+							debugger;
+							vm.watchers[key].push(vm.nowWatcher);
+						}
 					}
 					console.log(1);
 					return data[key];
@@ -17362,12 +17367,12 @@
 
 		//利用不同指令处理不同的m-，fillNodeData
 		// this.$addDirectives();
-		this.$fillNodeData();
+		this.$fillNodeData(vm);
 	};
 	Watcher.prototype.$update = function(vm){
 		var newValue = this.$getValue(vm);
 		var oldValue = this.value;
-		Directives[this.type].call(this, this.node, newValue, oldValue);
+		Directives[this.type].call(this, this.node, newValue, oldValue, vm);
 	};
 	Watcher.prototype.$getValue = function(vm){
 		//处理表达式的情形
@@ -17381,11 +17386,26 @@
 		})
 		return val;
 	}
-	Watcher.prototype.$fillNodeData = function(){
+	Watcher.prototype.$setValue = function(vm, value){
+		//处理表达式的情形
+		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
+		var exps = this.exp.split('.');
+		var val;
+		//exps = [a, aa, aaa];
+		//需引入表达式处理函数
+		exps.forEach(function(key, idx){
+			if (idx < exps.length -1) {
+				vm.$scope = vm.$scope[key];
+			} else {
+				vm.$scope[key] = value;
+			}
+		})
+	}
+	Watcher.prototype.$fillNodeData = function(vm){
 		//处理表达式的情形
 		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 		var newValue = this.value;
-		Directives[this.type].call(this, this.node, newValue);
+		Directives[this.type].call(this, this.node, newValue, undefined, vm);
 	}
 	module.exports = Watcher;
 
@@ -17411,7 +17431,24 @@
 			if (newValue && getComputedStyle(node, '').getPropertyValue('display') === 'none') {
 				node.style.display = 'block';
 			}
+		},
+		hide: function(node, newValue){
+			node.style.display = newValue ? 'none' : '';
+			if (!newValue && getComputedStyle(node, '').getPropertyValue('display') === 'none') {
+				node.style.display = 'block';
+			}
+		},
+		model: function(node, newValue, oldValue, vm){
+			node.value = newValue;
+			node.addEventListener('keyup', function(){
+				if (node.value != newValue) {
+					//重新触发$scope绑定的key的setter
+					vm.nowWatcher.$setValue(vm, node.value)
+					newValue = node.value;
+				}
+			}, false)
 		}
+
 	};
 	module.exports = Directives;
 

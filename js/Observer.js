@@ -23,7 +23,10 @@ var observer = function(vm, data){
 					vm.watchers[key]=[];
 					vm.watchers[key].push(vm.nowWatcher);
 				} else {
-					vm.watchers[key].push(vm.nowWatcher);
+					if (!vm.initialFlag) {
+						debugger;
+						vm.watchers[key].push(vm.nowWatcher);
+					}
 				}
 				console.log(1);
 				return data[key];

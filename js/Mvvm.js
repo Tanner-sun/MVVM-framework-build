@@ -19,6 +19,7 @@
 			vm.$scope = {};
 			//针对每个key维系一个watcher数组。用watchers来存放这些数组。
 			vm.watchers = {};
+			vm.initialFlag = false;
 
 			if (paramArr.length !== 3) {
 				throw 'expect paramArr has three elements';
@@ -32,6 +33,7 @@
 			//解析模板
 			var el =  paramArr[0];
 			compiler(vm, el);
+			vm.initialFlag = true;
 
 			//执行controller
 			typeof paramArr[1] == "function" && paramArr[1](vm.$scope);
