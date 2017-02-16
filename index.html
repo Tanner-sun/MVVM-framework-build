@@ -19,36 +19,49 @@
 </head>
 <body>
 
-<div id="container">
-    <div id="tpl1">
-        <p m-text = "someStr" id = "p_text">hello</p>
-        <div id = "tpl2" m-show = "showFlag">ssss</div>
-        <input m-model = 'modelStr' ></input>
-        <p m-text = "modelStr" id = "p_text"></p>
+<div id="tpl">
+    <div lv-for="li in list">
+        <label lv-text="li.name"></label>
+        <ul>
+            <li lv-for="tag in li.tagList">
+                <label lv-text="tag.id"></label>
+            </li>
+        </ul>
     </div>
 </div>
 
 <script src="./js/JSpringMin.js"></script>
+<!-- <script src="./vue-1.0.28.js"></script> -->
 <script>
 
     JSpringMin([
-        'container',
+        'tpl',
         function ($scope){
-            setTimeout(function(){
-                $scope.someStr = "hahaha!";
-                $scope.showFlag = true;
-            },5000)
+            // setTimeout(function(){
+            //     $scope.list.$set(1, );
+            //     $scope.showFlag = true;
+            // },5000)
         },
         function (){
             return data = {
-                someStr: 'hello world',
-                className: 'btn',
-                htmlStr: '<span style="color: #f00;">red</span>',
-                showFlag: false,
-                child: {
-                    someStr: 'World !'
+                list: [
+                {
+                    name:1,
+                    tagList:{
+                        tag:11
+                    }
                 },
-                modelStr:'123'
+                {
+                    name:2,
+                    tagList:{
+                        tag:22
+                    } 
+                },{
+                    name:3,
+                    tagList:{
+                        tag:33
+                    }
+                }]
             }
         }
     ]);

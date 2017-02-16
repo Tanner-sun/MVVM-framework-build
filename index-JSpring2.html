@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>show</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <style type="text/css">
+        #container,
+        #container2 {
+            position: relative;
+            height: 200px;
+        }
+        .aa {
+            color: red;
+        }
+        .bb {
+            color: blue;
+        }
+        .cc {
+            font-size: 100px;
+        }
+        </style>
+        <script src="./test/JSpring-2.js"></script>
+    </head>
+    <body>
+        
+        <div id="container"></div>
+        <div id="tpl">
+            <div id="showDiv" lv-show="'abc'">aaaaa</div>
+            <div id="showDiv2" lv-show="'abc' + show">aaaaa</div>
+            <div id="showDiv3" lv-show="pic.show">aaaaa</div>
+        </div>
+
+        <div id="container2"></div>
+        <div id="tpl2">
+            <div id="showDiv" lv-show="child.isShow">aaaaa</div>
+            <div id="showDiv2" lv-show="show == 'abc'">aaaaa</div>
+            <div id="showDiv3" lv-show="1 > 0">aaaaa</div>
+        </div>
+
+        <script>
+
+            //norm-show
+            JSpring([
+                function ($scope, $, module, plugin) {
+                    setTimeout(function () {
+                        $scope.pic.show = true;
+                        $scope.show = '321';
+                    }, 2000);
+                }, {
+                    show : '123',
+                    pic : {
+                        show : false
+                    }
+            }, '#tpl', '#container']);
+
+            //if-show
+            JSpring([
+                function ($scope, $, module, plugin) {
+                    setTimeout(function () {
+                        $scope.child.isShow = false;
+                        setTimeout(function () {
+                            $scope.show = 'abc';
+                        }, 2000);
+                    }, 2000);
+                }, {
+                    child : {
+                        isShow : true
+                    },
+                    show : 'cba'
+            }, '#tpl2', '#container2']);
+        </script>
+    </body>
+</html>

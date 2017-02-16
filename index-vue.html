@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>realize a MVVM framework</title>
+    <style type="text/css">
+        #p_text {
+            font-size: 40px;
+        }
+        #tpl1 {
+            width: 100px;
+            height: 100px;
+            background: red;
+        }
+        #tpl2 {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <button v-on:click = "change">点击</button>
+    <p v-text = "modelStr" id = "p_text"></p>
+
+    <div id="tpl1" v-for = "modeStr in someStr">
+        <p v-text = "modeStr" id = "p_text"></p>
+        <!-- <div id = "tpl2" v-show = "showFlag"></div> -->
+        <!-- <input v-model = 'modelStr' ></input> -->
+        <!-- <p v-text = "modelStr" id = "p_text"></p> -->
+    </div>
+    <input v-model = "modeStr"></input>
+</div>
+
+<script src="./test/vue-1.0.28.js"></script>
+<script>
+
+    var app = new Vue({
+        el: '#container',
+        data: {
+            someStr: [1,2,3,4,5,6,7],
+            modeStr: 'ss'
+        },
+        methods:{
+            change: function(){
+                this.someStr.$set(2,3333)
+            }
+        }
+    })
+
+</script>
+
+</body>
+</html>
