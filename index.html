@@ -20,47 +20,36 @@
 <body>
 
 <div id="tpl">
-    <div lv-for="li in list">
-        <label lv-text="li.name"></label>
-        <ul>
-            <li lv-for="tag in li.tagList">
-                <label lv-text="tag.id"></label>
-            </li>
-        </ul>
+    <div id="for" m-for="li in list">
+        <p id="forItem" m-text="li.name"></p>
     </div>
+    <div id="forNext" m-show="showFlag">showFLag显示</div>
+    <div id="forNext" m-text="test"></div>
 </div>
 
 <script src="./js/JSpringMin.js"></script>
-<!-- <script src="./vue-1.0.28.js"></script> -->
 <script>
 
     JSpringMin([
         'tpl',
         function ($scope){
-            // setTimeout(function(){
-            //     $scope.list.$set(1, );
-            //     $scope.showFlag = true;
-            // },5000)
+            // setTimeout(
+            //     function(){
+            //         $scope.list.$set(1,{name:222})
+            // },2000)
         },
         function (){
             return data = {
+                showFlag:true,
+                test: 'ss',
                 list: [
                 {
-                    name:1,
-                    tagList:{
-                        tag:11
-                    }
+                    name:11
                 },
                 {
-                    name:2,
-                    tagList:{
-                        tag:22
-                    } 
+                    name:211
                 },{
-                    name:3,
-                    tagList:{
-                        tag:33
-                    }
+                    name:311
                 }]
             }
         }

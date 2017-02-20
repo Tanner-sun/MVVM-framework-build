@@ -45,5 +45,6 @@ var observer = function(vm, data){
 	Object.defineProperties(vm.$scope, _source)	
 };
 
+
 module.exports = observer;
 

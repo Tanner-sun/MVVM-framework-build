@@ -12,34 +12,29 @@
             height: 100px;
             background: red;
         }
-        #tpl2 {
-            display: inline-block;
-        }
+        
     </style>
 </head>
 <body>
 
-<div id="container">
+<!-- <div id="container">
     <button v-on:click = "change">点击</button>
-    <p v-text = "modelStr" id = "p_text"></p>
+    <p v-text = "modelStr" id = "p_text"></p> -->
 
-    <div id="tpl1" v-for = "modeStr in someStr">
-        <p v-text = "modeStr" id = "p_text"></p>
-        <!-- <div id = "tpl2" v-show = "showFlag"></div> -->
-        <!-- <input v-model = 'modelStr' ></input> -->
-        <!-- <p v-text = "modelStr" id = "p_text"></p> -->
-    </div>
-    <input v-model = "modeStr"></input>
-</div>
+            <div id="tpl2" v-for = "item in names">
+                <div id="showDiv" v-text = "item"></div>
+            </div>
+    <!-- <input v-model = "modeStr"></input> -->
+<!-- </div> -->
 
 <script src="./test/vue-1.0.28.js"></script>
 <script>
 
     var app = new Vue({
-        el: '#container',
+        el: '#tpl2',
         data: {
-            someStr: [1,2,3,4,5,6,7],
-            modeStr: 'ss'
+            child : [[{test:1},{test:2},{test:3},{test:4}],[{test:1},{test:2},{test:3},{test:4}]],
+            names : [1,2,3,4]
         },
         methods:{
             change: function(){

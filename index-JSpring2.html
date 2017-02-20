@@ -24,51 +24,37 @@
     </head>
     <body>
         
-        <div id="container"></div>
-        <div id="tpl">
-            <div id="showDiv" lv-show="'abc'">aaaaa</div>
-            <div id="showDiv2" lv-show="'abc' + show">aaaaa</div>
-            <div id="showDiv3" lv-show="pic.show">aaaaa</div>
-        </div>
-
-        <div id="container2"></div>
-        <div id="tpl2">
-            <div id="showDiv" lv-show="child.isShow">aaaaa</div>
-            <div id="showDiv2" lv-show="show == 'abc'">aaaaa</div>
-            <div id="showDiv3" lv-show="1 > 0">aaaaa</div>
-        </div>
-
-        <script>
+<!--         <div id="container"></div>
+        <div id="tpl"><div id="showDiv" lv-show="'abc'">aaaaa</div><div id="showDiv2" lv-show="'abc' + show">aaaaa</div><div id="showDiv3" lv-show="pic.show">aaaaa</div>
+        </div> -->
+            <div id="tpl2" :for = "item in child">
+                <div id="showDiv" :for = "itemitem in item">{{itemitem.test + 1 }}</div>
+            </div>
+    <script>
 
             //norm-show
-            JSpring([
-                function ($scope, $, module, plugin) {
-                    setTimeout(function () {
-                        $scope.pic.show = true;
-                        $scope.show = '321';
-                    }, 2000);
-                }, {
-                    show : '123',
-                    pic : {
-                        show : false
-                    }
-            }, '#tpl', '#container']);
+            // JSpring([
+            //     function ($scope, $, module, plugin) {
+            //         setTimeout(function () {
+            //             $scope.pic.show = true;
+            //             $scope.show = '321';
+            //         }, 2000);
+            //     }, {
+            //         show : '123',
+            //         pic : {
+            //             show : false
+            //         }
+            // }, '#tpl', '#container']);
 
             //if-show
             JSpring([
                 function ($scope, $, module, plugin) {
                     setTimeout(function () {
-                        $scope.child.isShow = false;
-                        setTimeout(function () {
-                            $scope.show = 'abc';
-                        }, 2000);
+                        $scope.child[0].test = 11111;
                     }, 2000);
                 }, {
-                    child : {
-                        isShow : true
-                    },
-                    show : 'cba'
-            }, '#tpl2', '#container2']);
+                    child : [[{test:1},{test:2},{test:3},{test:4}],[{test:1},{test:2},{test:3},{test:4}]]
+            }, '#tpl2']);
         </script>
     </body>
 </html>

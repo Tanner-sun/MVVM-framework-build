@@ -17253,6 +17253,7 @@
 		Object.defineProperties(vm.$scope, _source)	
 	};
 
+
 	module.exports = observer;
 
 
@@ -17270,6 +17271,7 @@
 	*
 	*/
 	var Watcher = __webpack_require__(5);
+	var Observer = __webpack_require__(7);
 	var _ = __webpack_require__(1);
 
 	var Compiler = function(vm, el){
@@ -17295,6 +17297,7 @@
 			var attrArr = template.attributes;
 			_.each(attrArr, function(attr){
 				if (self.isMatchedAttr(attr)){
+					template.isFor = self.isMatchedFor(attr) ? true : false;
 					nodeMatched.push(template);
 				}
 			})		
@@ -17314,23 +17317,62 @@
 	Compiler.prototype.isMatchedAttr = function(attr){
 		return attr.nodeName.indexOf('m-') >= 0 ? true : false;
 	};
+	Compiler.prototype.isMatchedFor = function(attr){
+		return /for/g.test(attr.nodeName);
+	};
 
 	Compiler.prototype.filterAttributes = function(vm, nodeArr) {
 		var self = this;
-		var type,expression;
+		
 		_.each(nodeArr, function(node){
 			var nodeAttr = node.attributes;
 			_.each(nodeAttr,function(attr){
 				if (self.isMatchedAttr(attr)) {
-					type = attr.nodeName.substring(2);
-					expression = attr.value;
-					return new Watcher(vm, node, expression, type) 
+					self._compileM(vm, node, attr);
 				}
 			})
 		})
-	}
+	};
 
+	Compiler.prototype._compileM = function(vm, node, attr) {
+		var type, expression;
+		var self = this;
+		type = attr.nodeName.substring(2);
+		expression = attr.value;
+		if (type == 'for') {
+			self._compileFor(vm, node, attr, expression)
+		} else {
+			return new Watcher(vm, node, expression, type) 
+		}
+	};
+	Compiler.prototype._compileFor = function(vm, node, attr, expression) {
 
+		var alias = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[1];
+		var items = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[2];
+		var self = this;
+		var parentNode = node.parentNode;
+		parentNode.removeChild(node);
+
+		// observer(vm, key, value)
+		var items = vm.data[items];
+		for (var i = 0, len = items.length; i < len; i++) {
+			var item = items[i];
+			var data = {};
+			data[alias] = item;
+			Observer(vm, data);
+			var newNode = self._create(vm, node)
+			parentNode.appendChild(newNode);
+		}
+		
+	};
+	Compiler.prototype._create = function(vm, node, attr, expression) {
+		var backNode = node.cloneNode(true);
+		var childs = backNode.childNodes;
+		if (childs.length > 0) {
+			this.filterAttributes(vm, childs);
+		}
+		return backNode;
+	}	
 
 	function complier (vm, el) {
 		return new Compiler(vm, el);
@@ -17447,10 +17489,75 @@
 					newValue = node.value;
 				}
 			}, false)
+		},
+		// m-for的实现
+		// 首先第一步，在遍历template识别指令并New时，跳过for的子节点
+		// 进入for的update，进入diff，第一次声明时识别for子节点的表达式，识别出指令并new，其对应的值为当前item in items对应item
+		// 的值。并observe这个值。依次遍历for对应的数组。
+		// 局部更新：进入diff，没有变化的值打下标签。变化的不打标签，从而实现局部更新。
+		// 废弃节点更新
+		for: function(){
+
 		}
 
 	};
 	module.exports = Directives;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	/*
+	*observer的作用
+	*1）递归监听data所有的key
+	*2）getter：将当前的watcher加入watchers。后续需添加限制条件
+	*3）setter：将通过$scope赋予的新值与data中旧值对比，若不同，触发2）中维系的watchers中所有watcher的更新
+	*/
+
+	var observer = function(vm, data){
+
+		var keys = Object.keys(data);
+		var _source = {};
+
+		keys.forEach(function(key){
+
+			if (_.isObject(data[key])) 
+				return observer(vm, data[key]);
+			_source[key] = {
+				configurable:true,
+				enumerable:false,
+				get:function(){
+					//注册watcher?s
+					if (!vm.watchers[key]) {
+						vm.watchers[key]=[];
+						vm.watchers[key].push(vm.nowWatcher);
+					} else {
+						if (!vm.initialFlag) {
+							debugger;
+							vm.watchers[key].push(vm.nowWatcher);
+						}
+					}
+					console.log(1);
+					return data[key];
+				},
+				set:function(value){
+					if (data[key] != value){
+						data[key] = value;
+						/* 仍需处理新值是对象的情形*/
+						_.forEach(vm.watchers[key], function(watcher){
+							watcher.$update(vm)
+						})
+					}
+				}
+			};
+		});
+		Object.defineProperties(vm.$scope, _source)	
+	};
+
+
+	module.exports = observer;
+
+
 
 /***/ }
 /******/ ]);

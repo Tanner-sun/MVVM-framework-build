@@ -7,6 +7,7 @@
 *
 */
 var Watcher = require('./Watcher.js');
+var Observer = require('./Observer.js');
 var _ = require('lodash');
 
 var Compiler = function(vm, el){
@@ -32,6 +33,7 @@ Compiler.prototype.traverseNodes = function(template, nodeMatched){
 		var attrArr = template.attributes;
 		_.each(attrArr, function(attr){
 			if (self.isMatchedAttr(attr)){
+				template.isFor = self.isMatchedFor(attr) ? true : false;
 				nodeMatched.push(template);
 			}
 		})		
@@ -51,23 +53,62 @@ Compiler.prototype.traverseNodes = function(template, nodeMatched){
 Compiler.prototype.isMatchedAttr = function(attr){
 	return attr.nodeName.indexOf('m-') >= 0 ? true : false;
 };
+Compiler.prototype.isMatchedFor = function(attr){
+	return /for/g.test(attr.nodeName);
+};
 
 Compiler.prototype.filterAttributes = function(vm, nodeArr) {
 	var self = this;
-	var type,expression;
+	
 	_.each(nodeArr, function(node){
 		var nodeAttr = node.attributes;
 		_.each(nodeAttr,function(attr){
 			if (self.isMatchedAttr(attr)) {
-				type = attr.nodeName.substring(2);
-				expression = attr.value;
-				return new Watcher(vm, node, expression, type) 
+				self._compileM(vm, node, attr);
 			}
 		})
 	})
-}
+};
 
+Compiler.prototype._compileM = function(vm, node, attr) {
+	var type, expression;
+	var self = this;
+	type = attr.nodeName.substring(2);
+	expression = attr.value;
+	if (type == 'for') {
+		self._compileFor(vm, node, attr, expression)
+	} else {
+		return new Watcher(vm, node, expression, type) 
+	}
+};
+Compiler.prototype._compileFor = function(vm, node, attr, expression) {
 
+	var alias = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[1];
+	var items = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[2];
+	var self = this;
+	var parentNode = node.parentNode;
+	parentNode.removeChild(node);
+
+	// observer(vm, key, value)
+	var items = vm.data[items];
+	for (var i = 0, len = items.length; i < len; i++) {
+		var item = items[i];
+		var data = {};
+		data[alias] = item;
+		Observer(vm, data);
+		var newNode = self._create(vm, node)
+		parentNode.appendChild(newNode);
+	}
+	
+};
+Compiler.prototype._create = function(vm, node, attr, expression) {
+	var backNode = node.cloneNode(true);
+	var childs = backNode.childNodes;
+	if (childs.length > 0) {
+		this.filterAttributes(vm, childs);
+	}
+	return backNode;
+}	
 
 function complier (vm, el) {
 	return new Compiler(vm, el);
