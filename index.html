@@ -21,6 +21,9 @@
 
 <div id="tpl">
     <div id="for" m-for="li in list">
+        <div id="forItem" m-for="iitem in li.age">
+            <p id="forItem" m-text="iitem"></p>
+        </div>
         <p id="forItem" m-text="li.name"></p>
     </div>
     <div id="forNext" m-show="showFlag">showFLag显示</div>
@@ -44,12 +47,15 @@
                 test: 'ss',
                 list: [
                 {
-                    name:11
+                    name:11,
+                    age:[1,2,3,4,5]
                 },
                 {
-                    name:211
+                    name:211,
+                    age:[1,2,3,4,5]
                 },{
-                    name:311
+                    name:311,
+                    age:[1,2,3,4,5]
                 }]
             }
         }

@@ -17207,21 +17207,21 @@
 /***/ function(module, exports) {
 
 	/*
-	*observer的作用
-	*1）递归监听data所有的key
-	*2）getter：将当前的watcher加入watchers。后续需添加限制条件
-	*3）setter：将通过$scope赋予的新值与data中旧值对比，若不同，触发2）中维系的watchers中所有watcher的更新
+	* observer的作用
+	* 1）递归监听data所有的key
+	* 2）getter：将当前的watcher加入watchers。后续需添加限制条件
+	* 3）setter：将通过$scope赋予的新值与data中旧值对比，若不同，触发2）中维系的watchers中所有watcher的更新
+	*
+	*  scope的作用，用来添加不断被observe的key值，并对每个key维系一个watcher数组。
 	*/
+	var _source = {};
 
 	var observer = function(vm, data){
 
 		var keys = Object.keys(data);
-		var _source = {};
 
 		keys.forEach(function(key){
-
-			if (_.isObject(data[key])) 
-				return observer(vm, data[key]);
+			
 			_source[key] = {
 				configurable:true,
 				enumerable:false,
@@ -17232,7 +17232,6 @@
 						vm.watchers[key].push(vm.nowWatcher);
 					} else {
 						if (!vm.initialFlag) {
-							debugger;
 							vm.watchers[key].push(vm.nowWatcher);
 						}
 					}
@@ -17249,6 +17248,11 @@
 					}
 				}
 			};
+			if (_.isObject(data[key]) && !_.isArray(data[key])) {
+
+				return observer(vm, data[key]);
+
+			}
 		});
 		Object.defineProperties(vm.$scope, _source)	
 	};
@@ -17325,12 +17329,16 @@
 		var self = this;
 		
 		_.each(nodeArr, function(node){
-			var nodeAttr = node.attributes;
-			_.each(nodeAttr,function(attr){
-				if (self.isMatchedAttr(attr)) {
-					self._compileM(vm, node, attr);
-				}
-			})
+			if (node) {
+				var nodeAttr = node.attributes;
+				_.each(nodeAttr,function(attr){
+					if (self.isMatchedAttr(attr)) {
+						self._compileM(vm, node, attr);
+						}
+					}
+				)
+			}
+			
 		})
 	};
 
@@ -17348,21 +17356,36 @@
 	Compiler.prototype._compileFor = function(vm, node, attr, expression) {
 
 		var alias = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[1];
-		var items = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[2];
+		var items = /\s*(\w+)\s+in\s+(\S+)\s*/.exec(expression)[2];
 		var self = this;
 		var parentNode = node.parentNode;
 		parentNode.removeChild(node);
 
-		// observer(vm, key, value)
-		var items = vm.data[items];
-		for (var i = 0, len = items.length; i < len; i++) {
-			var item = items[i];
-			var data = {};
-			data[alias] = item;
-			Observer(vm, data);
-			var newNode = self._create(vm, node)
-			parentNode.appendChild(newNode);
+		if (/.*\.(\w+)/.exec(items)) {
+			items1 = /(\w+)\.(\w+)/.exec(items)[1];
+			items2 = /(\w+)\.(\w+)/.exec(items)[2];
+			items = vm.$scope[items1];
+			for (var i = 0, len = items[items2].length; i < len; i++) {
+				var item = items[items2];
+				var data = {};
+				data[alias] = item;
+				Observer(vm, data);
+				var newNode = self._create(vm, node);
+				parentNode.appendChild(newNode);
+			}
+		} else {
+			items = vm.data[items];
+			for (var i = 0, len = items.length; i < len; i++) {
+				var item = items[i];
+				var data = {};
+				data[alias] = item;
+				Observer(vm, data);
+				var newNode = self._create(vm, node);
+				parentNode.appendChild(newNode);
+			}
 		}
+		// observer(vm, key, value)
+		
 		
 	};
 	Compiler.prototype._create = function(vm, node, attr, expression) {
@@ -17372,6 +17395,14 @@
 			this.filterAttributes(vm, childs);
 		}
 		return backNode;
+	}
+	//从
+	function getObjValue (obj, key) {
+		if (obj.hasOwnProperty(key)) {
+			_.each(Object.keys(obj), function(){
+
+			})
+		}
 	}	
 
 	function complier (vm, el) {
@@ -17508,21 +17539,21 @@
 /***/ function(module, exports) {
 
 	/*
-	*observer的作用
-	*1）递归监听data所有的key
-	*2）getter：将当前的watcher加入watchers。后续需添加限制条件
-	*3）setter：将通过$scope赋予的新值与data中旧值对比，若不同，触发2）中维系的watchers中所有watcher的更新
+	* observer的作用
+	* 1）递归监听data所有的key
+	* 2）getter：将当前的watcher加入watchers。后续需添加限制条件
+	* 3）setter：将通过$scope赋予的新值与data中旧值对比，若不同，触发2）中维系的watchers中所有watcher的更新
+	*
+	*  scope的作用，用来添加不断被observe的key值，并对每个key维系一个watcher数组。
 	*/
+	var _source = {};
 
 	var observer = function(vm, data){
 
 		var keys = Object.keys(data);
-		var _source = {};
 
 		keys.forEach(function(key){
-
-			if (_.isObject(data[key])) 
-				return observer(vm, data[key]);
+			
 			_source[key] = {
 				configurable:true,
 				enumerable:false,
@@ -17533,7 +17564,6 @@
 						vm.watchers[key].push(vm.nowWatcher);
 					} else {
 						if (!vm.initialFlag) {
-							debugger;
 							vm.watchers[key].push(vm.nowWatcher);
 						}
 					}
@@ -17550,6 +17580,11 @@
 					}
 				}
 			};
+			if (_.isObject(data[key]) && !_.isArray(data[key])) {
+
+				return observer(vm, data[key]);
+
+			}
 		});
 		Object.defineProperties(vm.$scope, _source)	
 	};

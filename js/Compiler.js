@@ -61,12 +61,16 @@ Compiler.prototype.filterAttributes = function(vm, nodeArr) {
 	var self = this;
 	
 	_.each(nodeArr, function(node){
-		var nodeAttr = node.attributes;
-		_.each(nodeAttr,function(attr){
-			if (self.isMatchedAttr(attr)) {
-				self._compileM(vm, node, attr);
-			}
-		})
+		if (node) {
+			var nodeAttr = node.attributes;
+			_.each(nodeAttr,function(attr){
+				if (self.isMatchedAttr(attr)) {
+					self._compileM(vm, node, attr);
+					}
+				}
+			)
+		}
+		
 	})
 };
 
@@ -84,21 +88,36 @@ Compiler.prototype._compileM = function(vm, node, attr) {
 Compiler.prototype._compileFor = function(vm, node, attr, expression) {
 
 	var alias = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[1];
-	var items = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[2];
+	var items = /\s*(\w+)\s+in\s+(\S+)\s*/.exec(expression)[2];
 	var self = this;
 	var parentNode = node.parentNode;
 	parentNode.removeChild(node);
 
-	// observer(vm, key, value)
-	var items = vm.data[items];
-	for (var i = 0, len = items.length; i < len; i++) {
-		var item = items[i];
-		var data = {};
-		data[alias] = item;
-		Observer(vm, data);
-		var newNode = self._create(vm, node)
-		parentNode.appendChild(newNode);
+	if (/.*\.(\w+)/.exec(items)) {
+		items1 = /(\w+)\.(\w+)/.exec(items)[1];
+		items2 = /(\w+)\.(\w+)/.exec(items)[2];
+		items = vm.$scope[items1];
+		for (var i = 0, len = items[items2].length; i < len; i++) {
+			var item = items[items2];
+			var data = {};
+			data[alias] = item;
+			Observer(vm, data);
+			var newNode = self._create(vm, node);
+			parentNode.appendChild(newNode);
+		}
+	} else {
+		items = vm.data[items];
+		for (var i = 0, len = items.length; i < len; i++) {
+			var item = items[i];
+			var data = {};
+			data[alias] = item;
+			Observer(vm, data);
+			var newNode = self._create(vm, node);
+			parentNode.appendChild(newNode);
+		}
 	}
+	// observer(vm, key, value)
+	
 	
 };
 Compiler.prototype._create = function(vm, node, attr, expression) {
@@ -108,6 +127,14 @@ Compiler.prototype._create = function(vm, node, attr, expression) {
 		this.filterAttributes(vm, childs);
 	}
 	return backNode;
+}
+//从
+function getObjValue (obj, key) {
+	if (obj.hasOwnProperty(key)) {
+		_.each(Object.keys(obj), function(){
+
+		})
+	}
 }	
 
 function complier (vm, el) {
