@@ -1698,6 +1698,7 @@
 			instance : _this
 		});
 
+		//建立父子关系，vNode添加子节点，child添加父节点
 		vNode.children = _.flattenArr(children || [], function vNChildCb (child) {
 			child.parentVNode = vNode;
 		});

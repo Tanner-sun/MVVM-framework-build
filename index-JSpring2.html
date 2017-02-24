@@ -24,12 +24,15 @@
     </head>
     <body>
         
-<!--         <div id="container"></div>
-        <div id="tpl"><div id="showDiv" lv-show="'abc'">aaaaa</div><div id="showDiv2" lv-show="'abc' + show">aaaaa</div><div id="showDiv3" lv-show="pic.show">aaaaa</div>
-        </div> -->
-            <div id="tpl2" :for = "item in child">
+        <div id="container"></div>
+        <div id="tpl" class = "sdd" data-key = "ddd">
+            <div id="showDiv" lv-show="abc">aaaaa</div>
+            <div id="showDiv2" lv-text="abcs">aaaaa</div>
+            <div id="showDiv3" lv-show="picShow">aaaaa</div>
+        </div>
+<!--             <div id="tpl2" :for = "item in child">
                 <div id="showDiv" :for = "itemitem in item">{{itemitem.test + 1 }}</div>
-            </div>
+            </div> -->
     <script>
 
             //norm-show
@@ -50,11 +53,14 @@
             JSpring([
                 function ($scope, $, module, plugin) {
                     setTimeout(function () {
-                        $scope.child[0].test = 11111;
+                        $scope.abc = false;
                     }, 2000);
                 }, {
-                    child : [[{test:1},{test:2},{test:3},{test:4}],[{test:1},{test:2},{test:3},{test:4}]]
-            }, '#tpl2']);
+                    child : [[{test:1},{test:2},{test:3},{test:4}],[{test:1},{test:2},{test:3},{test:4}]],
+                    abc : 1,
+                    abcs : 2,
+                    picShow : false
+            }, '#tpl']);
         </script>
     </body>
 </html>

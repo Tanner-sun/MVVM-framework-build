@@ -98,7 +98,7 @@ Compiler.prototype._compileFor = function(vm, node, attr, expression) {
 		items2 = /(\w+)\.(\w+)/.exec(items)[2];
 		items = vm.$scope[items1];
 		for (var i = 0, len = items[items2].length; i < len; i++) {
-			var item = items[items2];
+			var item = items[items2][i];
 			var data = {};
 			data[alias] = item;
 			Observer(vm, data);
