@@ -7,7 +7,7 @@
 */
 
 var Directives = require('./Directives.js');
-
+var Observer = require('./Observer.js');
 
 
 var Watcher = function(vm, node, exp, type){
@@ -18,7 +18,6 @@ var Watcher = function(vm, node, exp, type){
 	this.value = this.$getValue(vm);
 	this.type = type;
 	this.node = node;
-
 	//求值 从而触发get 进而将当前watcher加入改实例vm的watchers中
 
 	//利用不同指令处理不同的m-，fillNodeData
@@ -28,13 +27,20 @@ var Watcher = function(vm, node, exp, type){
 Watcher.prototype.$update = function(vm){
 	var newValue = this.$getValue(vm);
 	var oldValue = this.value;
-	Directives[this.type].call(this, this.node, newValue, oldValue, vm);
+	Directives[this.type].call(this, this.node, newValue, oldValue, vm,this.exp);
 };
 Watcher.prototype.$getValue = function(vm){
 	//处理表达式的情形
 	//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 	var exps = this.exp.split('.');
 	var val;
+
+	if (/\:/g.test(this.exp)) {
+		var expObj = {};
+		expObj.expr = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[2];
+
+		exps = [expObj.expr];
+	}
 	//exps = [a, aa, aaa];
 	//需引入表达式处理函数
 	exps.forEach(function(key){
@@ -47,6 +53,12 @@ Watcher.prototype.$setValue = function(vm, value){
 	//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 	var exps = this.exp.split('.');
 	var val;
+
+	if (/\:/g.test(this.exp)) {
+		this.expObj = {};
+		this.expObj.expr = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[2];
+		exps = [this.expObj.expr];
+	}
 	//exps = [a, aa, aaa];
 	//需引入表达式处理函数
 	exps.forEach(function(key, idx){
@@ -61,6 +73,6 @@ Watcher.prototype.$fillNodeData = function(vm){
 	//处理表达式的情形
 	//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 	var newValue = this.value;
-	Directives[this.type].call(this, this.node, newValue, undefined, vm);
+	Directives[this.type].call(this, this.node, newValue, undefined, vm, this.exp);
 }
 module.exports = Watcher;

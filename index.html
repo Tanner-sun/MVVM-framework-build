@@ -15,19 +15,25 @@
         #tpl2 {
             display: inline-block;
         }
+        #buttonOn{
+            width: 100px;
+            height: 100px;
+        }
     </style>
 </head>
 <body>
 
 <div id="tpl">
+    <button id="buttonOn" m-on = "click:change()"></button>
     <div id="for" m-for="li in list">
         <div id="forItem" m-for="iitem in li.age">
-            <p id="forItem" m-text="iitem"></p>
+            <p id="forItemPN" >sss</p>
+            <p id="forItemP" m-text="iitem"></p>
         </div>
-        <p id="forItem" m-text="li.name"></p>
+        <p id="forItemName" m-text="li.name"></p>
     </div>
-    <div id="forNext" m-show="showFlag">showFLag显示</div>
-    <div id="forNext" m-text="test"></div>
+    <div id="forNext1" m-show="showFlag">showFLag显示</div>
+    <div id="forNext2" m-text="test"></div>
 </div>
 
 <script src="./js/JSpringMin.js"></script>
@@ -36,27 +42,30 @@
     JSpringMin([
         'tpl',
         function ($scope){
-            // setTimeout(
-            //     function(){
-            //         $scope.list.$set(1,{name:222})
-            // },2000)
+             $scope.change = function(){
+                 alert(2);
+                 $scope.test= 'gg'
+             }
         },
         function (){
             return data = {
                 showFlag:true,
                 test: 'ss',
                 list: [
-                {
-                    name:11,
-                    age:[1,2,3,4,5]
-                },
-                {
-                    name:211,
-                    age:[1,2,3,4,5]
-                },{
-                    name:311,
-                    age:[1,2,3,4,5]
-                }]
+                    {
+                        name:11,
+                        age:[1,2,3,4,5]
+                    },
+                    {
+                        name:211,
+                        age:[1,2,3,4,5]
+                    },{
+                        name:311,
+                        age:[1,2,3,4,5]
+                    }],
+                change:function($scope){
+                    $scope.test='sdddd'
+                }    
             }
         }
     ]);

@@ -19,39 +19,28 @@
         .cc {
             font-size: 100px;
         }
+        #buttonOn{
+            width: 100px;
+            height: 100px;
+        }
         </style>
         <script src="./test/JSpring-2.js"></script>
     </head>
     <body>
-        
         <div id="container"></div>
         <div id="tpl" class = "sdd" data-key = "ddd">
+            <div id="buttonOn" :on = "click:change()">点击我</div>
             <div id="showDiv" lv-show="abc">aaaaa</div>
             <div id="showDiv2" lv-text="abcs">aaaaa</div>
             <div id="showDiv3" lv-show="picShow">aaaaa</div>
         </div>
-<!--             <div id="tpl2" :for = "item in child">
-                <div id="showDiv" :for = "itemitem in item">{{itemitem.test + 1 }}</div>
-            </div> -->
     <script>
 
-            //norm-show
-            // JSpring([
-            //     function ($scope, $, module, plugin) {
-            //         setTimeout(function () {
-            //             $scope.pic.show = true;
-            //             $scope.show = '321';
-            //         }, 2000);
-            //     }, {
-            //         show : '123',
-            //         pic : {
-            //             show : false
-            //         }
-            // }, '#tpl', '#container']);
-
-            //if-show
             JSpring([
                 function ($scope, $, module, plugin) {
+                    $scope.change=function(){
+                        alert(1)
+                    }
                     setTimeout(function () {
                         $scope.abc = false;
                     }, 2000);
@@ -59,7 +48,10 @@
                     child : [[{test:1},{test:2},{test:3},{test:4}],[{test:1},{test:2},{test:3},{test:4}]],
                     abc : 1,
                     abcs : 2,
-                    picShow : false
+                    picShow : false,
+                    change: function(){
+                        alert(2)
+                    }
             }, '#tpl']);
         </script>
     </body>

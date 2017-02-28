@@ -17273,6 +17273,12 @@
 	*3）对每个符合2）要求的属性，创建一个watcher，并将该属性对应的指令名称、表达式值、node节点传递给watcher
 	*
 	*
+	*	  m-for的实现
+	*	 首先第一步，在遍历template识别指令并New时，跳过for的子节点
+	*	 进入for的update，进入diff，第一次声明时识别for子节点的表达式，识别出指令并new，其对应的值为当前item in items对应item
+	*	 的值。并observe这个值。依次遍历for对应的数组。
+	*	 局部更新：进入diff，没有变化的值打下标签。变化的不打标签，从而实现局部更新。
+	*	 废弃节点更新
 	*/
 	var Watcher = __webpack_require__(5);
 	var Observer = __webpack_require__(7);
@@ -17280,18 +17286,18 @@
 
 	var Compiler = function(vm, el){
 		this.vm = vm;
+		this.template = document.getElementById(el);
+		this.frag = document.createDocumentFragment();
 		this.parse(vm, el);
 	};
 
 	Compiler.prototype.parse = function(vm, el){
 
-		var template = document.getElementById(el);
 		//遍历出含有指令的node节点
 		var nodeMatched = [];
-		nodeMatched = this.traverseNodes(template, nodeMatched);
+		nodeMatched = this.traverseNodes(this.template, nodeMatched);
 		//在每个node节点中，解析出m-开头的属性，并为每个属性增加watcher
 		this.filterAttributes(vm, nodeMatched);
-
 	};
 
 	Compiler.prototype.traverseNodes = function(template, nodeMatched){
@@ -17353,18 +17359,23 @@
 			return new Watcher(vm, node, expression, type) 
 		}
 	};
+	Compiler.prototype._compileForBefore = function(vm, node, attr, expression) {
+		var forFlag = document.createDocumentFragment()
+	};
 	Compiler.prototype._compileFor = function(vm, node, attr, expression) {
 
 		var alias = /\s*(\w+)\s+in\s+(\w+)\s*/.exec(expression)[1];
 		var items = /\s*(\w+)\s+in\s+(\S+)\s*/.exec(expression)[2];
 		var self = this;
 		var parentNode = node.parentNode;
+		var nextSibling = node.nextSibling;
 		parentNode.removeChild(node);
 
 		if (/.*\.(\w+)/.exec(items)) {
 			items1 = /(\w+)\.(\w+)/.exec(items)[1];
 			items2 = /(\w+)\.(\w+)/.exec(items)[2];
 			items = vm.$scope[items1];
+			node.removeAttribute('m-for');
 			for (var i = 0, len = items[items2].length; i < len; i++) {
 				var item = items[items2][i];
 				var data = {};
@@ -17374,14 +17385,19 @@
 				parentNode.appendChild(newNode);
 			}
 		} else {
-			items = vm.data[items];
+			items = vm.$scope[items];
+			node.removeAttribute('m-for');
 			for (var i = 0, len = items.length; i < len; i++) {
 				var item = items[i];
 				var data = {};
 				data[alias] = item;
 				Observer(vm, data);
 				var newNode = self._create(vm, node);
-				parentNode.appendChild(newNode);
+				if (nextSibling) {
+					parentNode.insertBefore(newNode,nextSibling)
+				} else {
+					parentNode.appendChild(newNode);
+				}
 			}
 		}
 		// observer(vm, key, value)
@@ -17424,7 +17440,7 @@
 	*/
 
 	var Directives = __webpack_require__(6);
-
+	var Observer = __webpack_require__(7);
 
 
 	var Watcher = function(vm, node, exp, type){
@@ -17435,7 +17451,6 @@
 		this.value = this.$getValue(vm);
 		this.type = type;
 		this.node = node;
-
 		//求值 从而触发get 进而将当前watcher加入改实例vm的watchers中
 
 		//利用不同指令处理不同的m-，fillNodeData
@@ -17445,13 +17460,22 @@
 	Watcher.prototype.$update = function(vm){
 		var newValue = this.$getValue(vm);
 		var oldValue = this.value;
-		Directives[this.type].call(this, this.node, newValue, oldValue, vm);
+		Directives[this.type].call(this, this.node, newValue, oldValue, vm,this.exp);
 	};
 	Watcher.prototype.$getValue = function(vm){
 		//处理表达式的情形
 		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 		var exps = this.exp.split('.');
 		var val;
+
+		if (/\:/g.test(this.exp)) {
+			var expObj = {};
+			expObj.expr = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[2];
+			expObj.evt = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[1];
+			expObj.evtC = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[3];
+
+			exps = [expObj.expr];
+		}
 		//exps = [a, aa, aaa];
 		//需引入表达式处理函数
 		exps.forEach(function(key){
@@ -17464,6 +17488,15 @@
 		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 		var exps = this.exp.split('.');
 		var val;
+
+		if (/\:/g.test(this.exp)) {
+			this.expObj = {};
+			this.expObj.expr = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[2];
+			this.expObj.evt = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[1];
+			this.expObj.evtC = /(\w+)\:(\w+)\((\w*)\)/g.exec(this.exp)[3];
+
+			exps = [this.expObj.expr];
+		}
 		//exps = [a, aa, aaa];
 		//需引入表达式处理函数
 		exps.forEach(function(key, idx){
@@ -17478,7 +17511,7 @@
 		//处理表达式的情形
 		//当前仅处理a.aa.aaa;data = {a:{aa:{aaa:1}}}
 		var newValue = this.value;
-		Directives[this.type].call(this, this.node, newValue, undefined, vm);
+		Directives[this.type].call(this, this.node, newValue, undefined, vm, this.exp);
 	}
 	module.exports = Watcher;
 
@@ -17521,14 +17554,15 @@
 				}
 			}, false)
 		},
-		// m-for的实现
-		// 首先第一步，在遍历template识别指令并New时，跳过for的子节点
-		// 进入for的update，进入diff，第一次声明时识别for子节点的表达式，识别出指令并new，其对应的值为当前item in items对应item
-		// 的值。并observe这个值。依次遍历for对应的数组。
-		// 局部更新：进入diff，没有变化的值打下标签。变化的不打标签，从而实现局部更新。
-		// 废弃节点更新
-		for: function(){
+		on: function(node, event, olevent, vm, exp) {
 
+			var type = /(\w+)\:.*/.exec(exp)[1];
+			node.addEventListener(type, 
+				function (e) {
+					event.call(this, vm.$scope)
+					// evt.expr.call(this, evt.evtC)
+				}
+			, false)
 		}
 
 	};
