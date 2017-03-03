@@ -23,7 +23,7 @@
 
     <div id="for" v-for="li in list">
         <div id="forItem1" v-for="i in li.age">
-            <p id="forItem1Item" v-text="i"></p>
+            <p id="forItem1Item" v-text="i" v-if="show"></p>
         </div>
         <p id="forItem2" v-text="li.name"></p>
     </div>
@@ -36,6 +36,7 @@
     var app = new Vue({
         el: '#tpl2',
         data: {
+            show:false,
             list: [
                 {
                     name:11,

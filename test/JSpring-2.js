@@ -20,6 +20,7 @@
  *
  * @author Arnold.Zhang
  *
+ * 注释分支专用
  **/
 ;(function (global, factory) {
 	typeof exports === 'object' 
@@ -49,11 +50,13 @@
 
 		, $apply = Function.prototype.apply
 		, $replace = STRING.replace
+		//split用于按照一定规则分割字符串为数组
 		, $split = STRING.split
 		, $lower = STRING.toLowerCase
 		, $substr = STRING.substr
 		, $defProp = Object.defineProperty
 		, $create = Object.create
+		//Object.keys获取对象keys
 		, $keys = Object.keys
 		, $toString = OBJ.toString
 		, $slice = ARRAY.slice
@@ -101,10 +104,13 @@
 	/**
 	 * LOG
 	 **/
+	//日志输出在console的log,warn,error方法上重构 
 	var LOG = {
 		$errQ : [],
 
 		info : function info () {
+			//实际上是这样：console.log.$apply(console, arguments)
+			//为什么这样处理？console.log(arguments)输出的是数组[arguments]
 			$apply.call(console.log, console, arguments);
 		},
 
@@ -171,6 +177,11 @@
 			return 'not match the format of {1}'
 				.replace(/\{\d\}/g, attr);
 		},
+		missComp : function (tag) {
+			return '`{1}` is not a component'
+				.replace(/\{\d\}/g, tag);
+		},
+		h5Semantic : 'dont`t wrap block-element inside <p>',
 		container : 'the viewport haven`t found the container to place in'
 	};
 
@@ -179,8 +190,8 @@
 	 * REGEXP
 	 **/
 	var REGEXP = {
-		startEndAngleRE : /((?:\s|&[a-zA-Z]+;|<!\-\-@|[^<>]+)*)(<?(\/?)([^!<>\/\s]+)(?:\s*[^\s=\/>]+(?:="[^"]*"|='[^']*'|)|)+\s*\/?>?)(?:\s*@\-\->)?/g,
-		noEndRE : /^(?:input|br|img|link|hr|base|area|meta|embed|frame)$/,
+		startEndAngleRE : /((?:\s|&[a-zA-Z]+;|<!\-\-@|[^<>]+)*)(<?(\/?)([^!<>\/\s]+)(?:\s*[^\s=\/>]+(?:="[^"]*"|='[^']*'|=[^'"\s]+|)|)+\s*\/?>?)(?:\s*@\-\->)?/g,
+		ghostRE : /^(?:input|br|img|link|hr|base|area|meta|embed|frame)$/,//虚元素
 		attrsRE : /\s+([^\s=<>]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s<>]+))/g,
 		routeParamREG : /\:([^\:\-\.]+)/g,
 		uniqNoteRE : /<!\-\-@\s*([^@]+)\s*@\-\->/g,
@@ -188,6 +199,7 @@
 		commentRE : /\s*<!--\s*|\s*-->\s*/g,
 		uniqLeftNoteRE : /<!\-\-@/g,
 		errMsgRE : / is not defined/,
+		funcStrRE : /^\s*function/,
 		colonREG : /\s*\:\s*/,
 		rhashcodeRE : /\d\.\d{4}/,
 		uniqRE : /(?:lv-|:)([^-:]+)/,
@@ -298,6 +310,10 @@
 	 * _
 	 **/
 	var _ = {
+
+		isFunctionStr : function isFunctionStr (value) {
+			return REGEXP.funcStrRE.test(value);
+		},
 		
 		capitalLower : function capitalLower (str) {
 			return REGEXP.replace(str, REGEXP.capital, function (match) {
@@ -336,7 +352,7 @@
 			}
 		},
 
-		uniqPush: function uniqPush (arr, child) {
+		uniqPush : function uniqPush (arr, child) {
 
 			if (_.isArray(arr)) {
 				return !_.inArray(arr, child) && _.push(arr, child);
@@ -431,10 +447,12 @@
 				opts = {};
 			}
 
-			var jsonpREG = new RegExp((opts.jsonp || 'callback') + '=([^&]+)', 'g'),
-				script = $createEl("script"),
-				result = url.match(jsonpREG),
-				cbName;
+			var 
+				jsonpREG = new RegExp((opts.jsonp || 'callback') + '=([^&]+)', 'g')
+				, script = $createEl("script")
+				, result = url.match(jsonpREG)
+				, cbName
+				;
 
 			if (!result) {
 				return LOG.err('必须包含回调方法名');
@@ -491,6 +509,7 @@
 			client.open(method, url, true);
 			client.setRequestHeader('signal', 'ab4494b2-f532-4f99-b57e-7ca121a137ca');
 			client.onreadystatechange = handler;
+
 			try {
 				client.responseType = responseType;
 			} catch (err) {
@@ -501,12 +520,14 @@
 
 			function handler () {
 				var response;
+
 				if (this.readyState !== 4) {
 					return;
 				}
 
 				if (this.status === 200) {
 					response = this.response;
+
 					if (responseType == 'json') {
 						_.isString(response) && (response = JSON.parse(response));
 					}
@@ -521,6 +542,7 @@
 
 		serialize : function serialize (data) {
 			var result = '';
+			
 			if (_.isObject(data)) {
 				_.each($keys(data), function seriKeyEach(key) {
 					var value;
@@ -960,7 +982,7 @@
 			_['is' + key] = REGEXP.test(keyObj[key], UA);
 		});
 	});
-
+	//拦截数组原型方法，每次调用方法时：1.0 触发与该数组对应key的dep里维系的watcher更新。2.0 重新生成vNode 执行diff 重新渲染
 	_.each($split.call('push pop shift unshift splice sort reverse', REGEXP.spaceRE), function arrayProtoEach (method) {
 		var protoMethod = arrProto[method];
 		defVal(arrProto, '$' + method, function arrProVal () {
@@ -969,7 +991,7 @@
 			return result;
 		});
 	});
-
+	//处理arr[0]=newValue不触发更新问题
 	defVal(arrProto, '$set', function arrProSetVal (index, value) {
 		var len = this.length;
 
@@ -1185,6 +1207,7 @@
 	};
 
 	function getNonMatchReg (value) {
+		//new RegExp中字符串字符\需要转义
 		return new RegExp('\\s*(?:' 
 			+ value.replace(REGEXP.spaceRE, '|') 
 			+ ')\\b', 'g');
@@ -1292,7 +1315,7 @@
 
 	function isComponentAttr (attr) {
 		return REGEXP.test(REGEXP.compRE, attr);
-	}
+	};
 
 	function isOnAttr (attr) {
 		return REGEXP.test(REGEXP.onRE, attr);
@@ -1420,7 +1443,7 @@
 		if (sUniq) {
 
 			if (!tUniq) {
-				tUniq = tData.tUniq = $create(null);
+				tUniq = tData.uniq = $create(null);
 			}
 			_.extend(tUniq, sUniq || {});
 			tData.uKeys = $keys(tUniq);
@@ -1698,7 +1721,6 @@
 			instance : _this
 		});
 
-		//建立父子关系，vNode添加子节点，child添加父节点
 		vNode.children = _.flattenArr(children || [], function vNChildCb (child) {
 			child.parentVNode = vNode;
 		});
@@ -1855,6 +1877,7 @@
 		constructor: Query,
 
 		val : function val (value) {
+
 			if (_.isVoid0(value)) {
 				return this.els[0] ? this.els[0].value : '';
 			}
@@ -1872,6 +1895,7 @@
 		},
 
 		each : function each (callback) {
+
 			if (_.isFunction(callback)) {
 				this.els.length && this.els.forEach(function eachEach (el, i, arr) {
 					callback(el, i, arr);
@@ -1881,6 +1905,7 @@
 		},
 
 		html : function _html (html) {
+
 			if (_.isVoid0(html)) {
 				return this.els[0].innerHTML;
 			}
@@ -1891,6 +1916,7 @@
 		},
 
 		attr : function attr (key, value) {
+
 			if (!(1 in arguments)) {
 				return this.els[0].getAttribute(key);
 			}
@@ -2210,7 +2236,6 @@
 	};
 
 	function genComponent (vObj, attrStr, inst, parent, index) {
-		// vObj.children = [];
 		var 
 			tagName = vObj.tagName
 			, component = JSpring.component[tagName || 'div']
@@ -2221,7 +2246,6 @@
 			componentData = vObj.isComponent;
 			parent = parent || componentData;
 			component.vObj = inst.analyzeHtml(component.template);
-			// extendStaticAndUniqAttrs(component.vObj, vObj);
 			component.vTpl = genVNodeExpr(component.vObj, 0, inst);
 			component.props = component.props || {};
 			component.$scope = optimizeCb(defineProp
@@ -2230,7 +2254,6 @@
 				, {}
 				, inst);
 			_.push(vObj.children, component.vObj);
-			// $splice.call(vObj.parentVObj.children, vObj.index, 1, component.vObj);
 
 			return component.vTpl = '(function('
 				+ component.data
@@ -2256,9 +2279,11 @@
 				+ parent
 				+ '"))';
 		}
-		return '__j._n("'
-			+ vObj.tagName
-			+ '")';
+
+		return LOG.warn(WARN.missComp(tagName)),
+			'__j._n("'
+				+ vObj.tagName
+				+ '")';
 	};
 
 	/**
@@ -2324,7 +2349,10 @@
 				}
 
 				el.addEventListener(type, vNode.evtObj[type] = function onCallback ($event) {
-					return optimizeCb(callback, _this.$scope, args.concat([$event]));
+					return optimizeCb(callback
+						, _this.$scope
+						, args.concat([$event])
+						);
 				}, false);
 			}
 		});
@@ -2590,6 +2618,7 @@
 	};
 
 	JSpring.addComponent = function (key, value) {
+		value.key = key;
 		JSpring.component[_.lower(key)] = value;
 	};
 
@@ -2653,6 +2682,7 @@
 			? optimizeCb(_this.service, _this, [$, JSpring.module])
 			: _this.service) || {};
 		_this.$scope = optimizeCb(defineProp, _this, _this.data);
+		//创建一个Fragment容器，用于存放解析后的Dom片段。替换以前this.el，提升效率。
 		_this.frag = DOC.createDocumentFragment();
 		_this.init();
 	};
@@ -2700,7 +2730,7 @@
 				tagName = _.lower(match[4]);
 				isComponentEndTag = REGEXP.compSetRE.test(tagHtml);
 				isEndTag = _.toBool(match[3]) || isComponentEndTag;
-				isNoEndTag = REGEXP.noEndRE.test(tagName);
+				isNoEndTag = REGEXP.ghostRE.test(tagName);
 				vObj = createVObj(tagName, tagHtml, _this);
 
 				if (REGEXP.test(REGEXP.uniqLeftNoteRE, spaceOrNote)) {
@@ -2767,16 +2797,17 @@
 				, collection = _.getChildNodes(_this.el)
 				;
 
-			// _this.el.classList.add('effect_active');
-			// _this.el.classList.add('slideUp');
 			_this.vNode.el = _this.el;
 			_this.bindElement(collection, _this.vNode.children);
-
-			//TODO
-			// _this.initNode();
-			// _this.el = _.replaceNode(_this.frag.children[0], _this.el);
 			_this.clearNoUseAttr();
-			console.timeEnd('server render')
+			return optimizeCb(
+				_this.controller
+				, _this
+				, _this.$scope
+				, $
+				, JSpring.module
+				, _this
+				), console.timeEnd('server render');
 		},
 
 		bindElement : function bindElement (collection, children) {
@@ -2785,12 +2816,16 @@
 				, firstchild
 				;
 
+			if (collection.length != children.length) {
+				return LOG.warn(WARN.h5Semantic);
+			}
+
 			_.each(children, function (child, index) {
 				var collect = collection[index];
 
 				if (!child.isNeedRender) {
 					child.el = collect;
-					_this.bindElement(_.getChildNodes(child.el), child.children);
+					_this.bindElement(_.getChildNodes(child.el) || [], child.children || []);
 				} 
 
 				else {
@@ -2806,6 +2841,7 @@
 				;
 
 			if (!_this.isStatic) {
+
 				try {
 					_this.vNodeTemplate = _this.analyzeTplStr();
 					_this.renderFn = makeGetterFn(_this.vNodeTemplate);
@@ -2848,19 +2884,11 @@
 
 		initNode : function initNode (vNode) {
 			vNode = vNode || this.vNode;
-
 			var 
 				_this = this
 				, children
 				;
-
-			if (_.isArray(vNode)) {
-				_.each(_this.vNode, function(item){
-					_this.initNode(item)
-				})
-				return _this;
-			}
-
+			
 			createElemAndAppend(vNode, _this, _this.frag);
 			children = vNode.children || [];
 			children.length && _.each(children, function initNodeChildEach (child) {
@@ -3035,6 +3063,7 @@
 					case 5 :// 'APPEND' : 5
 						parentVNode.append(vNode);
 						break;
+
 					default :
 						break;
 				}
@@ -3044,9 +3073,9 @@
 		},
 
 		clearNoUseAttr : function clearNoUseAttr () {
-			delete this.vObj;
-			delete this.template;
-			delete this.vNodeTemplate;
+			this.vObj = null;
+			this.template = null;
+			this.vNodeTemplate = null;
 		},
 
 		bootstrap : function bootstrap () {
@@ -3097,6 +3126,35 @@
 
 	var lastPathName = '';
 
+	//fn
+	JSpring.fn = {
+		funcFormat : function funcFormat (obj) {
+			var _this = this;
+			_.each(obj, function (value, key) {
+
+				if (_.isFunctionStr(value)) {
+					obj[key] = new Function('return ' + value + ';')();
+				}
+
+				else if (_.isObject(value)) {
+					_this.funcFormat(value);
+				}
+			});
+			return obj;
+		},
+
+		addMultiComponent : function addMultiComponent (obj) {
+			var _this = this;
+			_.each(obj, function(comp, key) {
+				JSpring.addComponent(key, {
+					data: comp.data,
+					$scope: _this.funcFormat(comp.$scope),
+					template: comp.template
+				});
+			});
+		}
+	};
+
 	//浏览历史栈
 	JSpring.Stack = [];
 
@@ -3132,6 +3190,7 @@
 			;
 
 		_.each(routeKeys, function routeKeysEach(r) {
+
 			if (REGEXP.test(REGEXP.colonREG, r)) {
 				matchRoute[r] = [];
 				matchRoute[r][1] = [];
@@ -3349,16 +3408,16 @@
 				if (!tplFile) {
 					_.getText(route.templateUrl).then(function(tplFile) {
 						JSpring.fileCach[route.templateUrl] = tplFile;
-						instanceInit(tplFile, route.controllerFn, true);
+						instanceInit(tplFile, true);
 					});
 				} 
 
 				else {
-					instanceInit(tplFile, route.controllerFn, true);
+					instanceInit(tplFile, true);
 				}
 			}
 
-			function instanceInit (tpl, js, webpackFlag) {
+			function instanceInit (tpl, webpackFlag) {
 				var 
 					viewport
 					, loc
@@ -3374,7 +3433,7 @@
 
 				if (route.readyTransition) {
 					_.each(routeKeys, function routeKeysEach (rt) {
-						delete routes[rt].readyTransition;
+						routes[rt].readyTransition = null;
 					});
 				}
 
@@ -3391,6 +3450,7 @@
 				}
 
 				if (routeInfo.cach && JSpring.backViewPort) {
+
 					if (viewport = JSpring.vm[routeInfo.uniqId]) {
 						return viewport.renderFromCach(), onHashChanging = false;
 					}
@@ -3402,7 +3462,7 @@
 				}
 
 				if (webpackFlag) {
-					return js(function(res) {
+					return route.controllerFn(function(res) {
 
 						if (_.isFunction(res)) {
 							res(cm || {});
@@ -3421,6 +3481,7 @@
 
 		function setTitle(title, hash) {
 			var el;
+
 			if (_.isNull(title)) {
 				return false;
 			}
@@ -3461,16 +3522,19 @@
 		};
 
 		function isNeedsClick(el) {
+
 			if (!el.tagName) {
 				return false;
 			}
-			switch ($lower.call(el.tagName)) {
+
+			switch (_.lower(el.tagName)) {
 				case 'button':
 				case 'select':
 				case 'textarea':
 					return el.disabled;
 					break;
 				case 'input':
+				
 					if ((deviceIsIOS && el.type === 'file') || el.disabled) {
 						return true;
 					} 

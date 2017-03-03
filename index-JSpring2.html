@@ -27,31 +27,37 @@
         <script src="./test/JSpring-2.js"></script>
     </head>
     <body>
-        <div id="container"></div>
         <div id="tpl" class = "sdd" data-key = "ddd">
-            <div id="buttonOn" :on = "click:change()">点击我</div>
-            <div id="showDiv" lv-show="abc">aaaaa</div>
-            <div id="showDiv2" lv-text="abcs">aaaaa</div>
-            <div id="showDiv3" lv-show="picShow">aaaaa</div>
+            <div id="for" :for="li in list" :if="abc">
+                <div id="forItem" :for="iitem in li.age">
+                    <p id="forItemPN" :if="abc" :text="iitem">sss</p>
+                    <p id="forItemP" :text="iitem"></p>
+                </div>
+                <p id="forItemName" :text="li.name"></p>
+            </div>  
         </div>
     <script>
 
             JSpring([
                 function ($scope, $, module, plugin) {
-                    $scope.change=function(){
-                        alert(1)
-                    }
-                    setTimeout(function () {
-                        $scope.abc = false;
-                    }, 2000);
+                    setTimeout(()=>{
+                        $scope.abc = true
+                    },1000)
                 }, {
-                    child : [[{test:1},{test:2},{test:3},{test:4}],[{test:1},{test:2},{test:3},{test:4}]],
-                    abc : 1,
+                    abc : false,
                     abcs : 2,
-                    picShow : false,
-                    change: function(){
-                        alert(2)
-                    }
+                    list: [
+                        {
+                            name:11,
+                            age:[1,2,3,4,5]
+                        },
+                        {
+                            name:211,
+                            age:[1,2,3,4,5]
+                        },{
+                            name:311,
+                            age:[1,2,3,4,5]
+                        }]
             }, '#tpl']);
         </script>
     </body>

@@ -5,12 +5,12 @@
 *3）对每个符合2）要求的属性，创建一个watcher，并将该属性对应的指令名称、表达式值、node节点传递给watcher
 *
 *
-*	  m-for的实现
-*	 首先第一步，在遍历template识别指令并New时，跳过for的子节点
-*	 进入for的update，进入diff，第一次声明时识别for子节点的表达式，识别出指令并new，其对应的值为当前item in items对应item
-*	 的值。并observe这个值。依次遍历for对应的数组。
-*	 局部更新：进入diff，没有变化的值打下标签。变化的不打标签，从而实现局部更新。
-*	 废弃节点更新
+* m-for的实现
+* 首先第一步，在遍历template识别指令并New时，跳过for的子节点
+* 进入for的update，进入diff，第一次声明时识别for子节点的表达式，识别出指令并new，其对应的值为当前item in items对应item
+* 的值。并observe这个值。依次遍历for对应的数组。
+* 局部更新：进入diff，没有变化的值打下标签。变化的不打标签，从而实现局部更新。
+* 废弃节点更新
 */
 var Watcher = require('./Watcher.js');
 var Observer = require('./Observer.js');
