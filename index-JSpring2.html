@@ -27,15 +27,12 @@
         <script src="./test/JSpring-2.js"></script>
     </head>
     <body>
-        <div id="tpl" class = "sdd" data-key = "ddd">
-            <div id="for" :for="li in list" :if="abc">
-                <div id="forItem" :for="iitem in li.age">
-                    <p id="forItemPN" :if="abc" :text="iitem">sss</p>
-                    <p id="forItemP" :text="iitem"></p>
-                </div>
-                <p id="forItemName" :text="li.name"></p>
-            </div>  
+
+        <div id="tpl">
+            <input id="modelInput" type="text" lv-model="val" :text="val"></input>
+             <label id="modelLabel" lv-text="val"></label>
         </div>
+
     <script>
 
             JSpring([
@@ -45,18 +42,15 @@
                     },1000)
                 }, {
                     abc : false,
-                    abcs : 2,
+                    val : 2,
                     list: [
                         {
                             name:11,
-                            age:[1,2,3,4,5]
                         },
                         {
                             name:211,
-                            age:[1,2,3,4,5]
                         },{
                             name:311,
-                            age:[1,2,3,4,5]
                         }]
             }, '#tpl']);
         </script>

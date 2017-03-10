@@ -18,8 +18,8 @@
 <body>
 
 <div id="tpl2">
-<!--     <button v-on:click = "change">点击</button>
-    <p v-text = "modelStr" id = "p_text"></p> -->
+    <button v-on:click = "change">点击</button>
+    <!-- <p v-text = "modelStr" id = "p_text"></p> -->
 
     <div id="for" v-for="li in list">
         <div id="forItem1" v-for="i in li.age">
@@ -36,7 +36,7 @@
     var app = new Vue({
         el: '#tpl2',
         data: {
-            show:false,
+            show:true,
             list: [
                 {
                     name:11,
@@ -52,7 +52,17 @@
         },
         methods:{
             change: function(){
-                this.someStr.$set(2,3333)
+                this.list.$set({
+                    name:111,
+                    age:[1,2,3,4,5]
+                },
+                {
+                    name:2111,
+                    age:[1,2,3,4,5]
+                },{
+                    name:3111,
+                    age:[1,2,3,4,5]
+                })
             }
         }
     })
